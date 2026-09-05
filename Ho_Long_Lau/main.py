@@ -862,7 +862,74 @@ if "location_df" in locals():
     plt.show()
 
 # ============================================================
-# 19. FINAL EDA SUMMARY
+# 19. VISUALISATION 4 (ADDED FOR HD)
+# BIVARIATE ANALYSIS: LOCATION VS SKILL CATEGORY
+# ============================================================
+
+print("\n" + "=" * 80)
+print("14. BIVARIATE ANALYSIS: LOCATION VS CATEGORY (FIGURE 4)")
+print("=" * 80)
+
+if "location_df" in locals() and "skills_long" in locals() and "ba_jobs" in locals():
+
+    top_5_locs = location_df.head(5)["location"].tolist()
+
+    skills_with_loc = skills_long.merge(
+        ba_jobs[["job_link", "job_location"]].dropna(subset=["job_location"]),
+        on="job_link",
+        how="inner"
+    )
+
+    skills_with_loc["job_location"] = skills_with_loc["job_location"].astype(str).str.strip()
+
+    bivariate_df = skills_with_loc[skills_with_loc["job_location"].isin(top_5_locs)]
+
+    cross_tab = pd.crosstab(
+        bivariate_df["job_location"], 
+        bivariate_df["category"]
+    )
+
+    cross_tab = cross_tab.reindex(top_5_locs)
+    
+    print("\nBivariate Cross-Tabulation (Location vs Category):")
+    print(cross_tab)
+
+    cross_tab_core = cross_tab.drop(columns=["Other"])
+    cross_tab_pct = cross_tab_core.div(cross_tab_core.sum(axis=1), axis=0) * 100
+
+    plt.figure(figsize=(10, 6))
+    
+    cross_tab_pct.plot(
+        kind="bar", 
+        stacked=True, 
+        colormap="tab10", 
+        figsize=(12, 7)
+    )
+
+    plt.xlabel("Top 5 Job Locations")
+    plt.ylabel("Percentage of Required Skill Categories (%)")
+    plt.title("Figure 4: Bivariate Analysis of Skill Categories across Top Hubs")
+    
+    plt.legend(title="Skill Category", bbox_to_anchor=(1.05, 1), loc='upper left')
+    
+    plt.xticks(rotation=45, ha='right')
+    
+    plt.tight_layout()
+
+    plt.savefig(
+        OUTPUT_DIR / "figure4_bivariate_location_vs_category.png",
+        dpi=300,
+        bbox_inches="tight"
+    )
+
+    plt.show()
+    
+    cross_tab_pct.to_csv(
+        OUTPUT_DIR / "bivariate_location_vs_category_pct.csv"
+    )
+
+# ============================================================
+# 20. FINAL EDA SUMMARY
 # ============================================================
 
 print("\n" + "=" * 80)
